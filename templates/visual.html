@@ -16,7 +16,7 @@
 <div class="error-msg" id="error"></div>
 <div class="loading" id="loading">
     <div class="spinner"></div>
-    <span>Generating educational diagrams with Gemini AI...</span>
+    <span id="loading-text">Generating diagram prompts...</span>
 </div>
 
 <div class="card" id="prompts-card" style="display:none">
@@ -26,10 +26,8 @@
 
 <div class="card" id="images-card" style="display:none">
     <h2>🖼️ Generated Diagrams</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">Images may take 10-20 seconds each to generate</p>
     <div id="images-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem"></div>
-    <div class="result-area visible" id="no-images" style="display:none;text-align:center;color:var(--muted)">
-        Image generation requires Gemini Image Generation API access. Diagram prompts have been generated above — you can use them with any image generation tool.
-    </div>
 </div>
 
 <script>
@@ -37,11 +35,13 @@ async function generate() {
     const topic = document.getElementById('topic').value.trim();
     const error = document.getElementById('error');
     const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loading-text');
 
     if (!topic) { showError('Please enter a topic'); return; }
     error.classList.remove('visible');
     document.getElementById('prompts-card').style.display = 'none';
     document.getElementById('images-card').style.display = 'none';
+    loadingText.textContent = 'Generating diagram prompts...';
     loading.classList.add('visible');
 
     try {
@@ -59,24 +59,28 @@ async function generate() {
         promptsList.innerHTML = data.prompts.map((p, i) =>
             `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.8rem">
                 <span class="badge badge-blue" style="margin-bottom:0.5rem">Prompt ${i+1}</span>
-                <p style="color:var(--muted);font-size:0.9rem;margin-top:0.5rem">${p.replace(/^\d+\.\s*/, '')}</p>
+                <p style="color:var(--muted);font-size:0.9rem;margin-top:0.5rem">${p.replace(/^\d+\.\s*/, '').replace(/\*\*/g, '')}</p>
             </div>`
         ).join('');
         document.getElementById('prompts-card').style.display = 'block';
 
-        // Show images if any
-        document.getElementById('images-card').style.display = 'block';
+        // Show images
         if (data.images && data.images.length > 0) {
+            document.getElementById('images-card').style.display = 'block';
             const grid = document.getElementById('images-grid');
-            grid.innerHTML = data.images.map(img =>
-                `<img src="/serve/image/${img}" style="width:100%;border-radius:10px;border:1px solid var(--border)" />`
+            grid.innerHTML = data.images.map((img, i) =>
+                `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                    <div style="background:var(--surface2);padding:0.5rem 1rem;font-size:0.8rem;color:var(--muted)">Diagram ${i+1}</div>
+                    <img src="/serve/image/${img}" 
+                         style="width:100%;display:block" 
+                         onerror="this.parentElement.innerHTML='<p style=padding:1rem;color:var(--muted)>Image unavailable</p>'"
+                    />
+                </div>`
             ).join('');
-        } else {
-            document.getElementById('no-images').style.display = 'block';
         }
     } catch (e) {
         loading.classList.remove('visible');
-        showError('Request failed. Check your connection and API key.');
+        showError('Request failed. Check your connection.');
     }
 }
 
