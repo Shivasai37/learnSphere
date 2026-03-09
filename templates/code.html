@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Code Generation - LearnSphere{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>💻 Code Generation</h1>
+    <p>Generate working Python ML implementations with dependency detection</p>
+</div>
+
+<div class="card">
+    <h2>Enter Algorithm or Topic</h2>
+    <label>ML Algorithm / Topic</label>
+    <input type="text" id="topic" placeholder="e.g. neural network from scratch, k-means clustering, random forest..." />
+    <label>Complexity Level</label>
+    <select id="complexity">
+        <option value="Beginner">Beginner — Simple, well-commented</option>
+        <option value="Intermediate" selected>Intermediate — Standard implementation</option>
+        <option value="Comprehensive">Comprehensive — Production ready</option>
+    </select>
+    <button class="btn btn-primary" onclick="generate()">⚙️ Generate Code</button>
+</div>
+
+<div class="error-msg" id="error"></div>
+<div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>Generating Python code with Gemini AI...</span>
+</div>
+
+<div class="card" id="deps-card" style="display:none">
+    <h2>📦 Dependencies Detected</h2>
+    <div id="deps-list" class="flex-row"></div>
+    <div class="divider"></div>
+    <label>Install Command (Local)</label>
+    <div class="code-block visible" id="pip-cmd"></div>
+    <label style="margin-top:1rem">Install Command (Google Colab)</label>
+    <div class="code-block visible" id="colab-cmd"></div>
+</div>
+
+<div class="card" id="code-card" style="display:none">
+    <div class="flex-row" style="margin-bottom:1rem">
+        <h2 style="margin:0" id="code-title">Generated Code</h2>
+        <button class="btn btn-secondary" onclick="downloadCode()">⬇ Download .py</button>
+    </div>
+    <div class="code-block visible" id="code-result"></div>
+</div>
+
+<script>
+let currentFilename = '';
+
+async function generate() {
+    const topic = document.getElementById('topic').value.trim();
+    const complexity = document.getElementById('complexity').value;
+    const error = document.getElementById('error');
+    const loading = document.getElementById('loading');
+
+    if (!topic) { showError('Please enter a topic'); return; }
+    error.classList.remove('visible');
+    document.getElementById('deps-card').style.display = 'none';
+    document.getElementById('code-card').style.display = 'none';
+    loading.classList.add('visible');
+
+    try {
+        const res = await fetch('/api/generate/code', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({topic, complexity})
+        });
+        const data = await res.json();
+        loading.classList.remove('visible');
+        if (data.error) { showError(data.error); return; }
+
+        // Dependencies
+        if (data.dependencies && data.dependencies.length > 0) {
+            const depsList = document.getElementById('deps-list');
+            depsList.innerHTML = data.dependencies.map(d =>
+                `<span class="badge badge-green">${d}</span>`
+            ).join('');
+            document.getElementById('pip-cmd').textContent = data.install_instructions.local || '';
+            document.getElementById('colab-cmd').textContent = data.install_instructions.colab || '';
+            document.getElementById('deps-card').style.display = 'block';
+        }
+
+        // Code
+        document.getElementById('code-title').textContent = topic;
+        document.getElementById('code-result').textContent = data.code;
+        currentFilename = data.filename;
+        document.getElementById('code-card').style.display = 'block';
+    } catch (e) {
+        loading.classList.remove('visible');
+        showError('Request failed. Check your connection and API key.');
+    }
+}
+
+function downloadCode() {
+    if (currentFilename) {
+        window.location.href = `/download/code/${currentFilename}`;
+    }
+}
+
+function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.classList.add('visible');
+}
+
+document.getElementById('topic').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+});
+</script>
+{% endblock %}

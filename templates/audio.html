@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Audio Learning - LearnSphere{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🎧 Audio Lessons</h1>
+    <p>Convert any ML topic into a conversational audio lesson</p>
+</div>
+
+<div class="card">
+    <h2>Generate Audio Lesson</h2>
+    <label>ML Topic</label>
+    <input type="text" id="topic" placeholder="e.g. decision trees, gradient descent, attention mechanism..." />
+    <label>Lesson Length</label>
+    <select id="length">
+        <option value="Brief">Brief — 2-3 minutes</option>
+        <option value="Medium" selected>Medium — 5-6 minutes</option>
+        <option value="Detailed">Detailed — 8-10 minutes</option>
+    </select>
+    <button class="btn btn-primary" onclick="generate()">🎙️ Generate Audio</button>
+</div>
+
+<div class="error-msg" id="error"></div>
+<div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>Writing script and generating audio...</span>
+</div>
+
+<div class="card" id="audio-card" style="display:none">
+    <div class="flex-row" style="margin-bottom:1rem">
+        <h2 style="margin:0" id="audio-title">Audio Lesson</h2>
+        <span class="badge badge-orange" id="length-badge"></span>
+    </div>
+    <audio id="audio-player" controls></audio>
+    <div class="flex-row" style="margin-top:1rem">
+        <button class="btn btn-secondary" onclick="downloadAudio()">⬇ Download MP3</button>
+    </div>
+    <div class="divider"></div>
+    <h2>📝 Script</h2>
+    <div class="result-area visible" id="script-result"></div>
+</div>
+
+<script>
+let currentAudioFile = '';
+
+async function generate() {
+    const topic = document.getElementById('topic').value.trim();
+    const length = document.getElementById('length').value;
+    const error = document.getElementById('error');
+    const loading = document.getElementById('loading');
+    const audioCard = document.getElementById('audio-card');
+
+    if (!topic) { showError('Please enter a topic'); return; }
+    error.classList.remove('visible');
+    audioCard.style.display = 'none';
+    loading.classList.add('visible');
+
+    try {
+        const res = await fetch('/api/generate/audio', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({topic, length})
+        });
+        const data = await res.json();
+        loading.classList.remove('visible');
+        if (data.error) { showError(data.error); return; }
+
+        document.getElementById('audio-title').textContent = topic;
+        document.getElementById('length-badge').textContent = length;
+        document.getElementById('script-result').textContent = data.script;
+
+        currentAudioFile = data.audio_file;
+        const player = document.getElementById('audio-player');
+        player.src = `/serve/audio/${data.audio_file}`;
+
+        audioCard.style.display = 'block';
+    } catch (e) {
+        loading.classList.remove('visible');
+        showError('Request failed. Check your connection and API key.');
+    }
+}
+
+function downloadAudio() {
+    if (currentAudioFile) {
+        window.location.href = `/download/audio/${currentAudioFile}`;
+    }
+}
+
+function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.classList.add('visible');
+}
+
+document.getElementById('topic').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+});
+</script>
+{% endblock %}

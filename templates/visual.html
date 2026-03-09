@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Visual Learning - LearnSphere{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>🖼️ Visual Diagrams</h1>
+    <p>Generate educational diagrams for complex ML concepts</p>
+</div>
+
+<div class="card">
+    <h2>Generate Visual Diagram</h2>
+    <label>ML Concept</label>
+    <input type="text" id="topic" placeholder="e.g. convolutional neural network, attention mechanism, random forest..." />
+    <button class="btn btn-primary" onclick="generate()">🎨 Generate Diagrams</button>
+</div>
+
+<div class="error-msg" id="error"></div>
+<div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>Generating educational diagrams with Gemini AI...</span>
+</div>
+
+<div class="card" id="prompts-card" style="display:none">
+    <h2>📋 Generated Diagram Prompts</h2>
+    <div id="prompts-list"></div>
+</div>
+
+<div class="card" id="images-card" style="display:none">
+    <h2>🖼️ Generated Diagrams</h2>
+    <div id="images-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem"></div>
+    <div class="result-area visible" id="no-images" style="display:none;text-align:center;color:var(--muted)">
+        Image generation requires Gemini Image Generation API access. Diagram prompts have been generated above — you can use them with any image generation tool.
+    </div>
+</div>
+
+<script>
+async function generate() {
+    const topic = document.getElementById('topic').value.trim();
+    const error = document.getElementById('error');
+    const loading = document.getElementById('loading');
+
+    if (!topic) { showError('Please enter a topic'); return; }
+    error.classList.remove('visible');
+    document.getElementById('prompts-card').style.display = 'none';
+    document.getElementById('images-card').style.display = 'none';
+    loading.classList.add('visible');
+
+    try {
+        const res = await fetch('/api/generate/visual', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({topic})
+        });
+        const data = await res.json();
+        loading.classList.remove('visible');
+        if (data.error) { showError(data.error); return; }
+
+        // Show prompts
+        const promptsList = document.getElementById('prompts-list');
+        promptsList.innerHTML = data.prompts.map((p, i) =>
+            `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.8rem">
+                <span class="badge badge-blue" style="margin-bottom:0.5rem">Prompt ${i+1}</span>
+                <p style="color:var(--muted);font-size:0.9rem;margin-top:0.5rem">${p.replace(/^\d+\.\s*/, '')}</p>
+            </div>`
+        ).join('');
+        document.getElementById('prompts-card').style.display = 'block';
+
+        // Show images if any
+        document.getElementById('images-card').style.display = 'block';
+        if (data.images && data.images.length > 0) {
+            const grid = document.getElementById('images-grid');
+            grid.innerHTML = data.images.map(img =>
+                `<img src="/serve/image/${img}" style="width:100%;border-radius:10px;border:1px solid var(--border)" />`
+            ).join('');
+        } else {
+            document.getElementById('no-images').style.display = 'block';
+        }
+    } catch (e) {
+        loading.classList.remove('visible');
+        showError('Request failed. Check your connection and API key.');
+    }
+}
+
+function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.classList.add('visible');
+}
+
+document.getElementById('topic').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+});
+</script>
+{% endblock %}

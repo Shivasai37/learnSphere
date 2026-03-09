@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}LearnSphere - AI Powered ML Learning{% endblock %}
+{% block content %}
+<style>
+    .hero {
+        text-align: center;
+        padding: 4rem 0 3rem;
+    }
+    .hero-tag {
+        display: inline-block;
+        background: rgba(79,142,247,0.12);
+        color: var(--accent);
+        border: 1px solid rgba(79,142,247,0.3);
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 3.2rem;
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #e8eaf0 30%, var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+        color: var(--muted);
+        font-size: 1.1rem;
+        max-width: 520px;
+        margin: 0 auto 2.5rem;
+        line-height: 1.7;
+    }
+    .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .modes-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.2rem;
+        margin-top: 3rem;
+    }
+    .mode-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.8rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.25s;
+        position: relative;
+        overflow: hidden;
+    }
+    .mode-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        opacity: 0;
+        transition: opacity 0.25s;
+    }
+    .mode-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--glow); }
+    .mode-card:hover::before { opacity: 1; }
+    .mode-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .mode-card h3 {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .mode-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+    .stats { display: flex; gap: 2rem; justify-content: center; margin: 3rem 0 1rem; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-num {
+        font-family: 'Syne', sans-serif;
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent), var(--green));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .stat-label { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; }
+</style>
+
+<div class="hero">
+    <div class="hero-tag">✦ Generative AI Powered</div>
+    <h1>Learn Machine Learning<br>Your Way</h1>
+    <p>LearnSphere delivers personalized ML education through text, code, audio, and visual explanations — powered by Google Gemini AI.</p>
+    <div class="hero-btns">
+        <a href="/text" class="btn btn-primary">📖 Start Learning</a>
+        <a href="/code" class="btn btn-secondary">💻 Generate Code</a>
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat"><div class="stat-num">4</div><div class="stat-label">Learning Modes</div></div>
+    <div class="stat"><div class="stat-num">∞</div><div class="stat-label">ML Topics</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Complexity Levels</div></div>
+    <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Gemini Powered</div></div>
+</div>
+
+<div class="modes-grid">
+    <a href="/text" class="mode-card">
+        <div class="mode-icon">📖</div>
+        <h3>Text Explanation</h3>
+        <p>Get structured, depth-adjustable explanations of any ML concept from beginner to advanced level instantly.</p>
+    </a>
+    <a href="/code" class="mode-card">
+        <div class="mode-icon">💻</div>
+        <h3>Code Generation</h3>
+        <p>Generate working Python implementations with inline comments, dependency detection, and Colab-ready setup.</p>
+    </a>
+    <a href="/audio" class="mode-card">
+        <div class="mode-icon">🎧</div>
+        <h3>Audio Lessons</h3>
+        <p>Convert any ML topic into a conversational MP3 lesson you can listen to anywhere, anytime on the go.</p>
+    </a>
+    <a href="/visual" class="mode-card">
+        <div class="mode-icon">🖼️</div>
+        <h3>Visual Diagrams</h3>
+        <p>Generate educational diagrams and architectural illustrations for complex ML concepts using AI image generation.</p>
+    </a>
+</div>
+{% endblock %}

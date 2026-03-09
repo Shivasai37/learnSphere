@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+generated/audio/
+generated/code/
+generated/images/
+*.mp3
+*.py.bak

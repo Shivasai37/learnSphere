@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Text Explanation - LearnSphere{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>📖 Text Explanation</h1>
+    <p>Get structured, personalized explanations of any ML concept</p>
+</div>
+
+<div class="card">
+    <h2>Enter Your Topic</h2>
+    <label>ML Topic</label>
+    <input type="text" id="topic" placeholder="e.g. backpropagation, LSTM, k-means clustering..." />
+    <label>Complexity Level</label>
+    <select id="complexity">
+        <option value="Beginner">Beginner — Simple language, no math</option>
+        <option value="Intermediate" selected>Intermediate — Balanced depth</option>
+        <option value="Comprehensive">Comprehensive — Full technical depth</option>
+    </select>
+    <button class="btn btn-primary" onclick="generate()">✦ Generate Explanation</button>
+</div>
+
+<div class="error-msg" id="error"></div>
+<div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>Generating explanation with Gemini AI...</span>
+</div>
+
+<div class="card" id="result-card" style="display:none">
+    <div class="flex-row" style="margin-bottom:1rem">
+        <h2 style="margin:0" id="result-title">Explanation</h2>
+        <span class="badge badge-blue" id="complexity-badge"></span>
+    </div>
+    <div class="result-area visible" id="result"></div>
+</div>
+
+<script>
+async function generate() {
+    const topic = document.getElementById('topic').value.trim();
+    const complexity = document.getElementById('complexity').value;
+    const error = document.getElementById('error');
+    const loading = document.getElementById('loading');
+    const resultCard = document.getElementById('result-card');
+    const result = document.getElementById('result');
+
+    if (!topic) { showError('Please enter a topic'); return; }
+    error.classList.remove('visible');
+    resultCard.style.display = 'none';
+    loading.classList.add('visible');
+
+    try {
+        const res = await fetch('/api/generate/text', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({topic, complexity})
+        });
+        const data = await res.json();
+        loading.classList.remove('visible');
+        if (data.error) { showError(data.error); return; }
+        document.getElementById('result-title').textContent = topic;
+        document.getElementById('complexity-badge').textContent = complexity;
+        result.textContent = data.content;
+        resultCard.style.display = 'block';
+    } catch (e) {
+        loading.classList.remove('visible');
+        showError('Request failed. Check your connection and API key.');
+    }
+}
+
+function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.classList.add('visible');
+}
+
+document.getElementById('topic').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+});
+</script>
+{% endblock %}
