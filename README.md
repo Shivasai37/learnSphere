@@ -9,9 +9,9 @@ pip install -r requirements.txt
 
 ### 2. Configure API Key
 - Copy `.env.example` to `.env`
-- Add your Google Gemini API key:
+- Add your  API key:
 ```
-GEMINI_API_KEY=your_key_here
+GROQ_API_KEY=your_key_here
 ```
 Get your key from: https://ai.google.dev/
 
